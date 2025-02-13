@@ -9,6 +9,11 @@ import javax.inject.Inject
 class StatisticsViewModel @Inject constructor(
     val mainRepository: MainRepository
 ) : ViewModel() {
-    // Logic xử lý ViewModel ở đây
+    var totalDistance = mainRepository.getTotalDistance()
+    var totalTimeInMillis = mainRepository.getTotalTimeInMillis()
+    var totalAvgSpeed = mainRepository.getTotalAvgSpeed()
+    var totalCaloriesBurned = mainRepository.getTotalCaloriesBurned()
+
+    var runsSortedByDate = mainRepository.getAllRunsSortedByDate()
 }
 

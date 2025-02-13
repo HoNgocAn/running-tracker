@@ -1,9 +1,8 @@
 package com.example.runningtracker.ui.fragments
 
-import android.annotation.SuppressLint
+
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -14,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import com.example.runningtracker.db.Run
 import com.example.runningtracker.other.Constants.ACTION_PAUSE_SERVICE
 import com.example.runningtracker.other.Constants.ACTION_START_OR_RESUME_SERVICE
 import com.example.runningtracker.other.Constants.ACTION_STOP_SERVICE
@@ -28,14 +28,16 @@ import com.example.runningtrackerapp.R
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.PolylineOptions
-import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textview.MaterialTextView
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
+import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.material.snackbar.Snackbar
+import java.util.Calendar
+import kotlin.math.round
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
@@ -58,6 +60,10 @@ class TrackingFragment: Fragment(R.layout.fragment_tracking) {
 
     private var menu: Menu? = null
 
+
+    @set:Inject
+    var weight: Float = 80f
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -75,6 +81,11 @@ class TrackingFragment: Fragment(R.layout.fragment_tracking) {
         btnToggleRun = view.findViewById(R.id.btnToggleRun)
 
         btnFinishRun = view.findViewById(R.id.btnFinishRun)
+
+        btnFinishRun.setOnClickListener{
+            zoomToWholeTrack()
+            endRunAndSaveToDB()
+        }
 
         tvTimer = view.findViewById(R.id.tvTimer )
 
@@ -176,6 +187,47 @@ class TrackingFragment: Fragment(R.layout.fragment_tracking) {
         }
     }
 
+    private fun zoomToWholeTrack() {
+        val bounds = LatLngBounds.Builder()
+        for (polyline in pathPoints) {
+            for (point in polyline) {
+                bounds.include(point)
+            }
+        }
+        val width = mapView.width
+        val height = mapView.height
+        map?.moveCamera(
+            CameraUpdateFactory.newLatLngBounds(
+                bounds.build(),
+                width,
+                height,
+                (height * 0.05f).toInt()
+            )
+        )
+    }
+
+
+    private fun endRunAndSaveToDB() {
+        map?.snapshot { bmp ->
+            var distanceInMeters = 0
+            for (polyline in pathPoints) {
+                distanceInMeters += TrackingUtility.calculatePolylineLength(polyline).toInt()
+            }
+            val avgSpeed =
+                round((distanceInMeters / 1000f) / (curTimeInMillis / 1000f / 60 / 60) * 10) / 10f
+            val timestamp = Calendar.getInstance().timeInMillis
+            val caloriesBurned = ((distanceInMeters / 1000f) * weight).toInt()
+            val run =
+                Run(bmp, timestamp, avgSpeed, distanceInMeters, curTimeInMillis, caloriesBurned)
+            viewModel.insertRun(run)
+            Snackbar.make(
+                requireActivity().findViewById(R.id.rootView),
+                "Run saved successfully.",
+                Snackbar.LENGTH_LONG
+            ).show()
+            stopRun()
+        }
+    }
 
     private fun addAllPolylines() {
         for (polyline in pathPoints) {
