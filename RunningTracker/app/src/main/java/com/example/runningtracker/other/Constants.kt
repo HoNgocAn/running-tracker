@@ -21,6 +21,11 @@ object Constants {
     // Timer
     const val TIMER_UPDATE_INTERVAL = 50L
 
+
+    const val CANCEL_DIALOG_TAG = "CancelDialog"
+
+    const val LOCATION_REQUEST_CODE = 2000
+
     // Notifications
     const val NOTIFICATION_CHANNEL_ID = "tracking_channel"
     const val NOTIFICATION_CHANNEL_NAME = "Tracking"

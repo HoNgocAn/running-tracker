@@ -14,7 +14,9 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-class RunAdapter : RecyclerView.Adapter<RunAdapter.RunViewHolder>() {
+class RunAdapter(
+    private val onDeleteClick: (Run) -> Unit
+) : RecyclerView.Adapter<RunAdapter.RunViewHolder>() {
 
     private val diffCallback = object : DiffUtil.ItemCallback<Run>() {
         override fun areItemsTheSame(oldItem: Run, newItem: Run): Boolean {
@@ -43,6 +45,10 @@ class RunAdapter : RecyclerView.Adapter<RunAdapter.RunViewHolder>() {
     override fun onBindViewHolder(holder: RunViewHolder, position: Int) {
         val run = differ.currentList[position]
         val binding = holder.binding
+
+        binding.btnDeleteRun.setOnClickListener {
+            onDeleteClick(run) // Gọi callback với `run` hiện tại
+        }
 
         // Liên kết dữ liệu với View Binding
         Glide.with(binding.root).load(run.img).into(binding.ivRunImage)

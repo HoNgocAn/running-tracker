@@ -66,9 +66,12 @@ class MainViewModel @Inject constructor(
         this.sortType = sortType
     }
 
-
     // Logic xử lý ViewModel ở đây
     fun insertRun(run: Run) = viewModelScope.launch {
         mainRepository.insertRun(run)
+    }
+
+    fun deleteRun(run: Run) = viewModelScope.launch {
+        mainRepository.deleteRun(run)
     }
 }

@@ -42,7 +42,8 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigationView)
-        val navController = findNavController(R.id.navHostFragment) // Đổi tên biến cho rõ ràng
+        val navController = findNavController(R.id.navHostFragment)
+
 
         bottomNavigationView.setupWithNavController(navController)
 

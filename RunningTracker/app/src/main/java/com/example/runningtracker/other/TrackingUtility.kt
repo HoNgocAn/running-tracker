@@ -4,13 +4,15 @@ import android.content.Context
 import android.os.Build
 import pub.devrel.easypermissions.EasyPermissions
 import android.Manifest
+
 import android.location.Location
 import androidx.fragment.app.Fragment
-import com.example.runningtracker.other.Constants.REQUEST_CODE_LOCATION_PERMISSION
+import com.example.runningtracker.other.Constants.LOCATION_REQUEST_CODE
 import com.example.runningtracker.services.Polyline
 import java.util.concurrent.TimeUnit
 
 object TrackingUtility {
+
     fun hasLocationPermissions(context: Context): Boolean {
         val permissions = mutableListOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -34,11 +36,9 @@ object TrackingUtility {
             permissions.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
         }
 
-        EasyPermissions.requestPermissions(
-            fragment,
-            "You need to accept location permissions to use this app",
-            REQUEST_CODE_LOCATION_PERMISSION,
-            *permissions.toTypedArray()
+        fragment.requestPermissions(
+            permissions.toTypedArray(),
+            LOCATION_REQUEST_CODE
         )
     }
 

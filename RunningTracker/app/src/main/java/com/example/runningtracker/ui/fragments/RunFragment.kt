@@ -1,9 +1,11 @@
 package com.example.runningtracker.ui.fragments
 
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
+import android.widget.Button
 import android.widget.Spinner
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -12,11 +14,13 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.runningtracker.adapters.RunAdapter
+import com.example.runningtracker.db.Run
 import com.example.runningtracker.di.SortType
 import com.example.runningtracker.other.TrackingUtility
 import com.example.runningtracker.ui.viewmodels.MainViewModel
 import com.example.runningtrackerapp.R
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import pub.devrel.easypermissions.AppSettingsDialog
 import pub.devrel.easypermissions.EasyPermissions
@@ -27,12 +31,19 @@ class RunFragment: Fragment(R.layout.fragment_run),  EasyPermissions.PermissionC
 
     private lateinit var runAdapter: RunAdapter
 
+    private lateinit var btnDeleteRun: Button
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         requestPermissions()
-        runAdapter = RunAdapter()
+        runAdapter = RunAdapter { run ->
+            deleteRunAndRemoveFromDB(run)
+        }
         val fab = view.findViewById<FloatingActionButton>(R.id.fab)
         val spFilter = view.findViewById<Spinner>(R.id.spFilter)
+
+        btnDeleteRun = view.findViewById(R.id.btnDeleteRun)
+
 
         setupRecyclerView(view)
 
@@ -73,6 +84,21 @@ class RunFragment: Fragment(R.layout.fragment_run),  EasyPermissions.PermissionC
         }
     }
 
+    private fun deleteRunAndRemoveFromDB(run: Run) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Delete Run")
+            .setMessage("Are you sure you want to delete this run?")
+            .setPositiveButton("Yes") { _, _ ->
+                viewModel.deleteRun(run)
+                Snackbar.make(
+                    requireActivity().findViewById(R.id.rootView),
+                    "Run deleted successfully.",
+                    Snackbar.LENGTH_LONG
+                ).show()
+            }
+            .setNegativeButton("No", null)
+            .show()
+    }
     private fun setupRecyclerView(view: View) {
         val rvRuns = view.findViewById<RecyclerView>(R.id.rvRuns)
         rvRuns.apply {
